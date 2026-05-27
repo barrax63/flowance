@@ -39,7 +39,7 @@ export function SidePanel() {
   const primaryIncome = incomes[0];
 
   return (
-    <aside className="flex h-full w-[380px] shrink-0 flex-col border-r border-white/5 bg-ink-900/80 backdrop-blur-xl">
+    <aside className="mx-auto flex w-full max-w-4xl shrink-0 flex-col overflow-hidden rounded-xl border border-white/5 bg-ink-900/80 backdrop-blur-xl md:mx-0 md:h-full md:w-[380px] md:max-w-none md:rounded-none md:border-y-0 md:border-l-0 md:border-r">
       <Section
         title={t("panel.income")}
         action={
@@ -76,8 +76,8 @@ function Section({
   title, action, children,
 }: { title: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
-    <section className="border-b border-white/5 p-5">
-      <header className="mb-3 flex items-center justify-between">
+    <section className="border-b border-white/5 p-4 sm:p-5">
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <h2 className="font-display text-lg leading-none text-chalk-50">{title}</h2>
         {action}
       </header>
@@ -223,7 +223,7 @@ function NodeRow({ node, dragHandle }: { node: FlowNode; dragHandle: React.React
       )}
 
       <input
-        className={`min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-chalk-400 ${nameTone}`}
+        className={`min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-chalk-400 sm:text-sm ${nameTone}`}
         value={node.name}
         onChange={(e) => updateNode(node.id, { name: e.target.value })}
         onFocus={() => setEditing(true)}
@@ -240,7 +240,7 @@ function NodeRow({ node, dragHandle }: { node: FlowNode; dragHandle: React.React
           inputMode="decimal"
           min={0}
           step="0.01"
-          className="w-24 rounded bg-ink-700/60 px-2 py-1 text-right font-mono text-[12px] text-chalk-100 outline-none ring-1 ring-white/10 focus:ring-accent-lime/50"
+          className="w-28 rounded bg-ink-700/60 px-2 py-1 text-right font-mono text-base text-chalk-100 outline-none ring-1 ring-white/10 focus:ring-accent-lime/50 sm:w-24 sm:text-[12px]"
           value={node.amount ?? 0}
           onChange={(e) => updateNode(node.id, { amount: Math.max(0, Number(e.target.value) || 0) })}
         />

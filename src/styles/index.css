@@ -46,6 +46,10 @@ body,
   width: 100%;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   font-family: "Geist", ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "ss01", "ss02", "cv11";
@@ -184,3 +188,11 @@ body::before {
 .sankey-link:hover { opacity: 0.95 !important; }
 .sankey-node rect { transition: filter 180ms ease; }
 .sankey-node:hover rect { filter: brightness(1.25); }
+
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
