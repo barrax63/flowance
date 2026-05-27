@@ -24,6 +24,7 @@ const resources = {
         name: "Name",
         amount: "Amount",
         category: "Group",
+        categoryBadge: "CAT",
         delete: "Delete",
       },
       toolbar: {
@@ -76,6 +77,7 @@ const resources = {
         name: "Name",
         amount: "Betrag",
         category: "Gruppe",
+        categoryBadge: "KAT",
         delete: "Löschen",
       },
       toolbar: {

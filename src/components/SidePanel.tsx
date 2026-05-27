@@ -86,6 +86,15 @@ function Section({
   );
 }
 
+function sumExpenseDescendants(nodes: FlowNode[], rootId: string): number {
+  const children = nodes.filter((n) => n.parentId === rootId);
+  if (children.length === 0) {
+    const self = nodes.find((n) => n.id === rootId);
+    return self?.kind === "expense" ? self.amount ?? 0 : 0;
+  }
+  return children.reduce((sum, child) => sum + sumExpenseDescendants(nodes, child.id), 0);
+}
+
 function TreeBranch({ parent, depth }: { parent: FlowNode; depth: number }) {
   const { t } = useTranslation();
   const nodes = useStore((s) => s.nodes);
@@ -185,30 +194,45 @@ function SortableRow({ node }: { node: FlowNode }) {
 function NodeRow({ node, dragHandle }: { node: FlowNode; dragHandle: React.ReactNode }) {
   const { t } = useTranslation();
   const { updateNode, removeNode } = useStore((s) => s.actions);
+  const allNodes = useStore((s) => s.nodes);
   const currency = useCurrency();
-  const hasChildren = useStore((s) => s.nodes.some((n) => n.parentId === node.id));
+  const hasChildren = allNodes.some((n) => n.parentId === node.id);
   const [editing, setEditing] = useState(false);
+  const canEditAmount = node.kind === "income" || node.kind === "expense";
+  const categoryTotal = node.kind === "category" ? sumExpenseDescendants(allNodes, node.id) : 0;
 
-  // Show the computed total for parent categories (read-only).
-  const isParent = hasChildren && node.kind !== "income";
+  const rowTone =
+    node.kind === "income"
+      ? "bg-accent-lime/10 ring-accent-lime/20"
+      : node.kind === "category"
+        ? "bg-accent-amber/10 ring-accent-amber/25"
+        : "bg-orange-400/10 ring-orange-300/20";
+
+  const nameTone = node.kind === "category" ? "font-semibold text-amber-100" : "text-chalk-100";
 
   return (
-    <div className="group flex items-center gap-2 rounded-md bg-ink-800/60 px-2 py-1.5 ring-1 ring-white/5 hover:ring-white/10">
+    <div className={`group flex items-center gap-2 rounded-md px-2 py-1.5 ring-1 ${rowTone}`}>
       {dragHandle}
 
       <KindDot kind={node.kind} />
 
+      {node.kind === "category" && (
+        <span className="rounded border border-accent-amber/40 bg-accent-amber/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-amber">
+          {t("fields.categoryBadge")}
+        </span>
+      )}
+
       <input
-        className="min-w-0 flex-1 bg-transparent text-sm text-chalk-100 outline-none placeholder:text-chalk-400"
+        className={`min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-chalk-400 ${nameTone}`}
         value={node.name}
         onChange={(e) => updateNode(node.id, { name: e.target.value })}
         onFocus={() => setEditing(true)}
         onBlur={() => setEditing(false)}
       />
 
-      {isParent ? (
-        <span className="font-mono text-[11px] text-chalk-300">
-          {formatMoney(0, currency).replace(/[\d.,]+/, "·")}
+      {!canEditAmount ? (
+        <span className={`font-mono text-[11px] ${hasChildren || categoryTotal > 0 ? "text-chalk-200" : "text-chalk-400"}`}>
+          {formatMoney(categoryTotal, currency)}
         </span>
       ) : (
         <input
@@ -216,7 +240,7 @@ function NodeRow({ node, dragHandle }: { node: FlowNode; dragHandle: React.React
           inputMode="decimal"
           min={0}
           step="0.01"
-          className="w-24 rounded bg-ink-700/60 px-2 py-1 text-right font-mono text-[12px] text-chalk-100 outline-none ring-1 ring-white/5 focus:ring-accent-lime/50"
+          className="w-24 rounded bg-ink-700/60 px-2 py-1 text-right font-mono text-[12px] text-chalk-100 outline-none ring-1 ring-white/10 focus:ring-accent-lime/50"
           value={node.amount ?? 0}
           onChange={(e) => updateNode(node.id, { amount: Math.max(0, Number(e.target.value) || 0) })}
         />

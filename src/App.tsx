@@ -35,7 +35,7 @@ export default function App() {
         </section>
       </main>
       <footer className="border-t border-white/5 px-6 py-2 text-[10px] uppercase tracking-widest text-chalk-400">
-        Flowance · v1.0
+        Flowance · v1.1
       </footer>
     </div>
   );

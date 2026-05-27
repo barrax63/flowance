@@ -34,14 +34,14 @@ export interface BuiltGraph {
 const BUDGET_ID = "__budget__";
 const SAVINGS_ID = "__savings__";
 
-/** Sum all expense leaves descending from a given node id. */
-function subtreeTotal(nodes: FlowNode[], rootId: string): number {
+/** Sum all expense amounts descending from a given node id. */
+function subtreeExpenseTotal(nodes: FlowNode[], rootId: string): number {
   const children = nodes.filter((n) => n.parentId === rootId);
   if (children.length === 0) {
     const self = nodes.find((n) => n.id === rootId);
-    return self?.amount ?? 0;
+    return self?.kind === "expense" ? self.amount ?? 0 : 0;
   }
-  return children.reduce((sum, c) => sum + subtreeTotal(nodes, c.id), 0);
+  return children.reduce((sum, c) => sum + subtreeExpenseTotal(nodes, c.id), 0);
 }
 
 export function buildSankey(
@@ -52,7 +52,7 @@ export function buildSankey(
   const spendingRoots = nodes.filter((n) => n.parentId && incomes.some((i) => i.id === n.parentId));
 
   const totalIncome = incomes.reduce((s, n) => s + (n.amount ?? 0), 0);
-  const totalSpend = spendingRoots.reduce((s, n) => s + subtreeTotal(nodes, n.id), 0);
+  const totalSpend = spendingRoots.reduce((s, n) => s + subtreeExpenseTotal(nodes, n.id), 0);
   const savings = Math.max(0, totalIncome - totalSpend);
 
   const out: SankeyDatum[] = [];
@@ -71,9 +71,9 @@ export function buildSankey(
 
   // Recursively walk spending tree, treating each income's children as top-level categories.
   const walk = (node: FlowNode, parentSinkId: string) => {
-    const total = subtreeTotal(nodes, node.id);
+    const total = subtreeExpenseTotal(nodes, node.id);
     if (total <= 0) return;
-    const kind = nodes.some((n) => n.parentId === node.id) ? "category" : "expense";
+    const kind = node.kind === "expense" ? "expense" : "category";
     out.push({ id: node.id, name: node.name, kind, amount: total, ref: node });
     links.push({ source: parentSinkId, target: node.id, value: total });
     const children = nodes

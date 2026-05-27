@@ -30,6 +30,9 @@ export interface Store {
   actions: Actions;
 }
 
+const sanitizeNodeAmount = (node: FlowNode): FlowNode =>
+  node.kind === "category" ? { ...node, amount: undefined } : node;
+
 export const useStore = create<Store>()(
   persist(
     (set, get) => ({
@@ -41,11 +44,12 @@ export const useStore = create<Store>()(
           const id = uid();
           const siblings = get().nodes.filter((n) => n.parentId === partial.parentId);
           const order = partial.order ?? siblings.length;
-          set({ nodes: [...get().nodes, { ...partial, id, order } as FlowNode] });
+          const newNode = sanitizeNodeAmount({ ...partial, id, order } as FlowNode);
+          set({ nodes: [...get().nodes, newNode] });
           return id;
         },
         updateNode: (id, patch) =>
-          set({ nodes: get().nodes.map((n) => (n.id === id ? { ...n, ...patch } : n)) }),
+          set({ nodes: get().nodes.map((n) => (n.id === id ? sanitizeNodeAmount({ ...n, ...patch }) : n)) }),
         removeNode: (id) => {
           // Cascade delete: drop the node and all descendants.
           const toDrop = new Set<string>([id]);
@@ -83,7 +87,25 @@ export const useStore = create<Store>()(
       name: "flowance.store",
       // Persist data — but not the `actions` object.
       partialize: (s) => ({ nodes: s.nodes, currencyCode: s.currencyCode, locale: s.locale }),
-      version: 1,
+      version: 2,
+      migrate: (persistedState, version) => {
+        const state = persistedState as Partial<Store> | undefined;
+        if (!state) return persistedState as Store;
+
+        if (version < 2 && Array.isArray(state.nodes)) {
+          return {
+            ...state,
+            nodes: state.nodes.map((n) => sanitizeNodeAmount(n as FlowNode)),
+          } as Store;
+        }
+
+        return {
+          ...state,
+          nodes: Array.isArray(state.nodes)
+            ? state.nodes.map((n) => sanitizeNodeAmount(n as FlowNode))
+            : [],
+        } as Store;
+      },
     },
   ),
 );
