@@ -1,0 +1,82 @@
+name: flowance-kit
+
+networks:
+  main:
+    driver: bridge
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+x-security-baseline: &security-baseline
+  security_opt:
+    - no-new-privileges:true
+    - apparmor=docker-default
+  cap_drop:
+    - ALL
+
+services:
+  flowance:
+    <<: *security-baseline
+    build: .
+    image: flowance:latest
+    hostname: flowance
+    networks: ['main']
+    restart: on-failure
+    environment:
+      - TZ=${TZ:-UTC}
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    ports:
+      - "8080:80"
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging: *default-logging
+
+  cloudflared:
+    <<: *security-baseline
+    image: cloudflare/cloudflared:latest
+    profiles: ["cloudflared"]
+    init: true
+    networks: ['main']
+    restart: on-failure
+    depends_on:
+      flowance:
+        condition: service_healthy
+    environment:
+      - TZ=${TZ:-UTC}
+      - TUNNEL_TOKEN=${CLOUDFLARED_TUNNEL_TOKEN}
+    read_only: true
+    tmpfs:
+      - /tmp:noexec,nosuid,nodev,size=64m
+    command: tunnel --metrics 127.0.0.1:60123 --loglevel info --no-autoupdate run
+    healthcheck:
+      test: ["CMD", "cloudflared", "tunnel", "--metrics", "127.0.0.1:60123", "ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    logging: *default-logging
