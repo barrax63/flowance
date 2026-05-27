@@ -19,7 +19,7 @@ export function Toolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | nu
   };
 
   return (
-    <header className="flex items-center justify-between gap-4 border-b border-white/5 bg-ink-900/70 px-6 py-3 backdrop-blur-xl">
+    <header className="flex items-center justify-between gap-3 border-b border-white/5 bg-ink-900/70 px-6 py-3 backdrop-blur-xl">
       <div className="flex items-baseline gap-3">
         <span className="font-display text-2xl italic leading-none text-chalk-50">
           Flow<span className="text-accent-lime not-italic">·</span>ance
@@ -27,12 +27,13 @@ export function Toolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | nu
         <span className="hidden text-xs text-chalk-400 sm:inline">{t("app.tagline")}</span>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
         {/* Currency */}
         <label className="sr-only" htmlFor="currency">{t("toolbar.currency")}</label>
         <select
           id="currency"
-          className="input w-auto py-1.5 text-xs"
+          className="input shrink-0 py-1.5 text-xs"
+          style={{ width: "7.25rem" }}
           value={currencyCode}
           onChange={(e) => setCurrency(e.target.value)}
         >
@@ -44,12 +45,12 @@ export function Toolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | nu
         </select>
 
         {/* Language toggle — segmented control */}
-        <div className="inline-flex overflow-hidden rounded-md ring-1 ring-white/5">
+        <div className="inline-flex shrink-0 overflow-hidden rounded-md ring-1 ring-white/5">
           {(["de", "en"] as Locale[]).map((l) => (
             <button
               key={l}
               onClick={() => onLocale(l)}
-              className={`px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-wider transition ${
+              className={`shrink-0 px-2.5 py-1.5 text-[11px] font-medium uppercase tracking-wider transition ${
                 locale === l ? "bg-accent-lime text-ink-950" : "bg-ink-800 text-chalk-300 hover:text-chalk-50"
               }`}
             >
@@ -58,12 +59,14 @@ export function Toolbar({ svgRef }: { svgRef: React.RefObject<SVGSVGElement | nu
           ))}
         </div>
 
-        <button className="btn" onClick={reset}>{t("toolbar.reset")}</button>
+        <button className="btn shrink-0 whitespace-nowrap" onClick={reset}>{t("toolbar.reset")}</button>
         <button
-          className="btn btn-primary"
+          className="btn btn-primary shrink-0 whitespace-nowrap"
+          aria-label={t("toolbar.export")}
+          title={t("toolbar.export")}
           onClick={() => svgRef.current && exportSvg(svgRef.current, `flowance-${Date.now()}.svg`)}
         >
-          ↓ {t("toolbar.export")}
+          ↓ SVG
         </button>
       </div>
     </header>

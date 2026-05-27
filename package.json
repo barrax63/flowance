@@ -1,7 +1,7 @@
 {
   "name": "flowance",
   "private": true,
-  "version": "1.1.0",
+  "version": "1.1.1",
   "type": "module",
   "description": "Personal finance Sankey-diagram builder. Visualize income vs. spending flows.",
   "scripts": {
