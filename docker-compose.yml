@@ -24,7 +24,7 @@ services:
     image: flowance:latest
     hostname: flowance
     networks: ['main']
-    restart: on-failure
+    restart: unless-stopped
     environment:
       - TZ=${TZ:-UTC}
     cap_add:
@@ -54,7 +54,7 @@ services:
     profiles: ["cloudflared"]
     init: true
     networks: ['main']
-    restart: on-failure
+    restart: unless-stopped
     depends_on:
       flowance:
         condition: service_healthy
