@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "preview": "wrangler dev",
+    "deploy": "npm run build && wrangler deploy",
     "lint": "eslint ."
   },
   "dependencies": {
@@ -33,6 +34,7 @@
     "postcss": "^8.4.45",
     "tailwindcss": "^4.3.0",
     "typescript": "^6.0.3",
-    "vite": "^8.0.14"
+    "vite": "^8.0.14",
+    "wrangler": "^4.151.3"
   }
 }

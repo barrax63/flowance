@@ -16,7 +16,7 @@ German/English UI, SVG export, validation warnings.
 - **@dnd-kit** — accessible drag & drop.
 - **react-i18next** — DE / EN runtime toggle.
 - **Tailwind CSS** — utility styling on a custom design token palette.
-- **Nginx (Alpine)** — production static serving.
+- **Cloudflare Workers (static assets)** — production hosting at the edge.
 
 ## Local development
 
@@ -29,56 +29,41 @@ npm run dev          # http://localhost:5173
 
 ```bash
 npm run build        # outputs ./dist
-npm run preview      # serve dist locally on :4173
+npm run preview      # serve ./dist through the local Workers runtime on :8787
 ```
 
-## Docker deployment
+## Deployment (Cloudflare Workers)
 
-The repo ships a multi-stage `Dockerfile` and a hardened `docker-compose.yml`.
+Flowance is a purely static SPA, deployed as an assets-only Worker — no Worker
+script runs, so requests are free and don't count toward the Workers free-plan
+request quota.
+
+- `wrangler.jsonc` — serves `./dist`, falls back to `index.html` for unknown
+  paths (SPA routing).
+- `public/_headers` — security headers + immutable caching for hashed
+  `/assets/*`. Copied into `dist/` by Vite.
+
+### From your machine
 
 ```bash
-# Build & run app only (recommended default)
-docker compose up -d --build
-# → http://<host>:8080
-
-# Build & run app + optional Cloudflare Tunnel reverse proxy
-docker compose --profile cloudflared up -d --build
-
-# Or build & run manually
-docker build -t flowance:latest .
-docker run -d --name flowance -p 8080:80 --restart unless-stopped flowance:latest
+npx wrangler login   # once
+npm run deploy       # build + wrangler deploy
+# → https://flowance.<your-subdomain>.workers.dev
 ```
 
-Change the host port by editing `ports:` in `docker-compose.yml`.
+### From Git (auto-deploy on push)
 
-### Behind a reverse proxy (Traefik / Caddy / nginx)
+In the Cloudflare dashboard: **Workers & Pages → Create → Import a repository**,
+pick this repo, and set:
 
-The container listens on port `80` internally. Point your proxy at it; no
-extra config needed (SPA routing is handled inside the container).
+- **Build command**: `npm run build`
+- **Deploy command**: `npx wrangler deploy`
 
-### Optional: Cloudflared reverse proxy
+### Custom domain
 
-`docker-compose.yml` includes an optional `cloudflared` service behind the
-`cloudflared` profile.
-
-1. Create a Cloudflare Tunnel in Zero Trust and copy its token.
-2. In Cloudflare, add a Public Hostname for your domain/subdomain and set:
-  - **Type**: HTTP
-  - **URL**: `http://flowance:80`
-3. Create a `.env` file next to `docker-compose.yml`:
-
-```bash
-CLOUDFLARED_TUNNEL_TOKEN=<your_tunnel_token>
-TZ=UTC
-```
-
-4. Start with the Cloudflared profile enabled:
-
-```bash
-docker compose --profile cloudflared up -d --build
-```
-
-Without the profile, only the `flowance` service starts.
+Workers & Pages → `flowance` → **Settings → Domains & Routes → Add → Custom
+domain**. Keep the same hostname across migrations: entries live in
+`localStorage`, which is bound to the origin.
 
 ## Data & privacy
 

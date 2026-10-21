@@ -1,0 +1,12 @@
+// Cloudflare Workers config: static-assets-only Worker (no script).
+// Asset requests are free and don't count toward the Workers request quota.
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "flowance",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist",
+    // Unknown paths fall back to index.html for client-side routing.
+    "not_found_handling": "single-page-application"
+  }
+}
